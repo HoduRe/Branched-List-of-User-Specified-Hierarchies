@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BLUSH.h" />
     <ClInclude Include="CircularMotion\CircularMotion.h" />
     <ClInclude Include="CircularMotion\CircularMotionStructs.h" />
     <ClInclude Include="imconfig.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="SDL_image\include\SDL_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BLUSH.cpp" />
     <ClCompile Include="CircularMotion\CircularMotion.cpp" />
     <ClCompile Include="CircularMotion\FileSystem.cpp" />
     <ClCompile Include="CircularMotion\GenericVariables.cpp" />

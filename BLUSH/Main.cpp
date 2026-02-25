@@ -1,4 +1,5 @@
 #include "CircularMotion/CircularMotion.h"
+#include "BLUSH.h"
 
 #pragma comment( lib, "SDL/libx86/SDL2.lib" )
 #pragma comment( lib, "SDL/libx86/SDL2main.lib" )
@@ -95,12 +96,7 @@ int main(int argc, char** argv) {
 
 	bool mainLoop = true;
 	cmi2 windowSize(width, height);
-
-	TagCluster editor(&windowSize);
-	FileSystem fileManager(&windowSize);
-	TagData tagData;
-	char directory[252];
-	memset(directory, 0, sizeof(directory));
+	BLUSH blushApp(window, width, height);
 
 	while (mainLoop == true) {
 
@@ -120,21 +116,9 @@ int main(int argc, char** argv) {
 		StartFrame();
 
 		///////////////////////
-
-		ImGui::Begin("Miscellanious menus");
-
-		if (ImGui::Button("Open file manager editor")) { fileManager.OpenFileSystemLoadMenu(); }
-		if (ImGui::Button("Open global tag editor")) { editor.OpenGlobalEditorMenu(); }
-		if (ImGui::Button("Open local tag editor")) { editor.OpenLocalEditorMenu(&tagData, nullptr, nullptr, nullptr, "TagDataElement"); }
-		if (ImGui::Button("Open tag options")) { editor.OpenOptionsMenu(); }
-
-		if (fileManager.DrawTabWithoutMenuToGetValidPath("##inputTextForPath", "Add path##inputTextForPathButton", true, true, directory, sizeof(directory))) { editor.OpenGlobalEditorMenu(); }
-
-		fileManager.DrawFileSystemMenus();
-		editor.DrawTagMenus();
+		
+		blushApp.Update();
 		ImGuiBase::DrawErrorMessage();
-
-		ImGui::End();
 
 		///////////////////////
 

@@ -49,6 +49,9 @@
     <ClCompile Include="CircularMotion\TagEditor.cpp">
       <Filter>CircularMotion</Filter>
     </ClCompile>
+    <ClCompile Include="BLUSH.cpp">
+      <Filter>BLUSH</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -88,6 +91,9 @@
     </ClInclude>
     <ClInclude Include="PugiXml\src\pugixml.hpp">
       <Filter>PugiXML</Filter>
+    </ClInclude>
+    <ClInclude Include="BLUSH.h">
+      <Filter>BLUSH</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
