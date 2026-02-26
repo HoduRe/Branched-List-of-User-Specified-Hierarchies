@@ -1,6 +1,19 @@
 #pragma once
 #include "CircularMotion/CircularMotion.h"
 
+class BLUSHNode {
+
+public:
+
+	BLUSHNode();
+	~BLUSHNode();
+
+	std::string nodeName;
+	std::vector<BLUSHNode*> childNodes;
+	BLUSHNode* parentNode;
+
+};
+
 class BLUSHTree {
 
 public:
@@ -11,6 +24,7 @@ public:
 public:
 
 	std::string treeName;
+	std::vector<BLUSHNode*> rootNodes;
 
 };
 
@@ -27,6 +41,7 @@ private:
 
 	void DrawTreeData(int initialX, int initialY);
 	void SaveDataTrees();
+	void SaveDataTreeChildNodes(BLUSHNode* node, pugi::xml_node& xmlNode, int index);
 	void LoadDataTrees();
 
 public:
@@ -38,6 +53,7 @@ private:
 	int screenWidth, screenHeight;
 	std::vector<BLUSHTree> trees;
 	std::string currentTreeName;
+	pugi::xml_document fileHandle;
 
 };
 
