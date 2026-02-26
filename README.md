@@ -2,7 +2,6 @@
 
 TASK LIST:
 
-- Make name editable
 - Button to create new node on top
 - Button to create new node on selection
 - Button to delete selected node

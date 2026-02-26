@@ -13,7 +13,7 @@ BLUSHTree::BLUSHTree(std::string _name) : treeName(_name), rootNodes() {}
 BLUSHTree::~BLUSHTree() {}
 
 BLUSH::BLUSH(SDL_Window* _window, int _screenWidth, int _screenHeight) : windowRef(_window), screenWidth(_screenWidth), screenHeight(_screenHeight),
-currentTreeIndex(0), trees(), fileHandle() {
+currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer("") {
 
 	LoadDataTrees();
 
@@ -32,17 +32,11 @@ bool BLUSH::Update() {
 	static ImVec2 winPos = ImVec2(screenWidth * 0.05f, screenHeight * 0.1f);
 	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
 
-	ImGui::ShowDemoWindow();
-
 	ImGui::SetNextWindowPos(winPos);
 	ImGui::SetNextWindowSize(winSize);
 	ImGui::Begin("Tree List", NULL, flags);
 
-	if (ImGui::Button("Create New Tree")) {
-
-		trees.push_back(BLUSHTree());
-
-	}
+	if (ImGui::Button("Create New Tree")) { trees.push_back(BLUSHTree()); }
 
 	int upTree = -1, downTree = -1;
 
@@ -51,10 +45,17 @@ bool BLUSH::Update() {
 		ImGui::NewLine();
 		if (ImGui::Button(ImGuiBase::MakeImGuiName("^", i).c_str())) { upTree = i; } ImGui::SameLine();
 		if (ImGui::Button(ImGuiBase::MakeImGuiName("v", i).c_str())) { downTree = i; } ImGui::SameLine();
-		if (ImGui::Selectable(ImGuiBase::MakeImGuiName(trees[i].treeName, i).c_str(), currentTreeIndex == i)) { currentTreeIndex = i; }
+
+		if (ImGui::Selectable(ImGuiBase::MakeImGuiName(trees[i].treeName, i).c_str(), currentTreeIndex == i)) {
+
+			currentTreeIndex = i;
+			strcpy_s(treeNameBuffer, sizeof(treeNameBuffer), trees[i].treeName.c_str());
+
+		}
 
 		if (i == currentTreeIndex) {
 
+			DrawTreeDataEditingMenu(trees[i].treeName, winPos.x + winSize.x);
 			DrawTreeData(winPos.x + winSize.x, winPos.y);
 
 		}
@@ -70,14 +71,33 @@ bool BLUSH::Update() {
 
 void BLUSH::DrawTreeData(int initialX, int initialY) {
 
-	static ImVec2 winSize = ImVec2(screenWidth * 0.6f, screenHeight * 0.8f);
 	static ImVec2 winPos = ImVec2(initialX, initialY);
+	static ImVec2 winSize = ImVec2(screenWidth * DATA_MENU_MULTIPLIER, screenHeight * 0.8f);
 	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
 
 	ImGui::SetNextWindowPos(winPos);
 	ImGui::SetNextWindowSize(winSize);
 	ImGui::Begin("Tree Data", NULL, flags);
 
+	if (ImGui::Button("Create New Node")) { trees.push_back(BLUSHTree()); }
+
+
+	ImGui::End();
+
+}
+
+
+void BLUSH::DrawTreeDataEditingMenu(std::string& name, int sizeX) {
+
+	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
+
+	ImGui::SetNextWindowPos(ImVec2(sizeX, screenHeight * 0.015f));
+	ImGui::SetNextWindowSize(ImVec2(screenWidth * DATA_MENU_MULTIPLIER, screenHeight * 0.085f));
+	ImGui::Begin("##DataEditor", NULL, flags);
+
+	ImGui::InputText("##treeNameEditor", treeNameBuffer, sizeof(treeNameBuffer));
+	name = treeNameBuffer;
+	if (ImGui::Button("Create New Node")) { trees.push_back(BLUSHTree()); }
 
 
 	ImGui::End();
@@ -142,6 +162,12 @@ void BLUSH::LoadDataTrees() {
 			trees.push_back(newTree);
 
 		}
+
+	}
+
+	for (size_t i = 0; i < trees.size(); i++) { // To prevent tree name from resetting on frame 1
+
+		if (i == currentTreeIndex) { strcpy_s(treeNameBuffer, sizeof(treeNameBuffer), trees[i].treeName.c_str()); }
 
 	}
 
