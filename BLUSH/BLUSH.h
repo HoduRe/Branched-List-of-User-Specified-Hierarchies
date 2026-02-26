@@ -8,6 +8,7 @@ enum class PENDING_ACTION {
 	NONE,
 	CREATE,
 	DELETE,
+	MOVE_TO_ROOT,
 	MOVE
 
 };
@@ -26,12 +27,13 @@ class BLUSHNode {
 
 public:
 
-	BLUSHNode();
-	BLUSHNode(std::string _name);
+	BLUSHNode(std::string _name = "NewNode");
 	~BLUSHNode();
 
 public:
 
+	static int idGenerator;
+	const int nodeID;
 	std::string nodeName;
 	std::vector<BLUSHNode> childNodes;
 
@@ -65,7 +67,9 @@ public:
 private:
 
 	void DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY);
+	void DrawTreeChildData(const BLUSHNode& node, int level);
 	void DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& rootNodes, int sizeX);
+	void HandlePendingAction();
 	void LoadDataTrees();
 	void SaveDataTreeChildNodes(const BLUSHNode& node, pugi::xml_node& xmlNode, int index);
 	BLUSHNode LoadDataTreeChildNodes(pugi::xml_node& treeNode);
@@ -79,7 +83,7 @@ private:
 	SDL_Window* windowRef;
 	int screenWidth, screenHeight;
 	std::vector<BLUSHTree> trees;
-	int currentTreeIndex, currentNodeIndex;
+	int currentTreeIndex, currentNodeIndex, selectedNode, selectedNodeAux;
 	PENDING_ACTION pendingAction;
 	NODE_TOGGLE nodeToggle;
 	bool includeChildNodes;
