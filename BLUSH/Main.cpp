@@ -126,6 +126,7 @@ int main(int argc, char** argv) {
 
 	}
 
+	blushApp.SaveDataTrees();
 	SDL_GL_DeleteContext(context);
 	if (window != NULL) { SDL_DestroyWindow(window); }
 	SDL_Quit();

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<BLUSH_Trees>
+	<Tree0 name="NewTree" />
+	<Tree1 name="NewTree" />
+	<Tree2 name="NewTree" />
+</BLUSH_Trees>
