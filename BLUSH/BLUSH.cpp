@@ -13,7 +13,7 @@ BLUSHTree::BLUSHTree(std::string _name) : treeName(_name), rootNodes() {}
 BLUSHTree::~BLUSHTree() {}
 
 BLUSH::BLUSH(SDL_Window* _window, int _screenWidth, int _screenHeight) : windowRef(_window), screenWidth(_screenWidth), screenHeight(_screenHeight),
-currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer(""), pendingAction(PENDING_ACTION::NONE), includeChildNodes(false), nodeToggle(NODE_TOGGLE::NONE) {
+currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer(""), pendingAction(PENDING_ACTION::NONE), includeChildNodes(false), nodeToggle(NODE_TOGGLE::OPEN) {
 
 	LoadDataTrees();
 
@@ -104,6 +104,9 @@ void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int in
 
 	}
 
+	if (nodeToggle == NODE_TOGGLE::SET_OPEN) { nodeToggle = NODE_TOGGLE::CLOSE; }
+	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { nodeToggle = NODE_TOGGLE::OPEN; }
+
 	ImGui::End();
 
 }
@@ -123,7 +126,13 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 
 	if (ImGui::Button("New Root Node")) { rootNodes.push_back(BLUSHNode()); } ImGui::SameLine();
 	if (ImGui::Button("New Child Node")) { pendingAction = PENDING_ACTION::CREATE; } ImGui::Separator();
-	if (ImGui::Button(nodeToggle == NODE_TOGGLE::OPEN ? "Open All Nodes" : "Close All Nodes")) { pendingAction = PENDING_ACTION::MOVE; } ImGui::SameLine();
+
+	if (ImGui::Button(nodeToggle == NODE_TOGGLE::OPEN ? "Open All Nodes" : "Close All Nodes")) {
+
+		nodeToggle = nodeToggle == NODE_TOGGLE::OPEN ? NODE_TOGGLE::SET_OPEN : NODE_TOGGLE::SET_CLOSE;
+
+	} ImGui::SameLine();
+
 	ImGui::Checkbox("Include Child Nodes", &includeChildNodes); ImGui::SameLine();
 	if (ImGui::Button("Delete Node")) { pendingAction = PENDING_ACTION::DELETE; } ImGui::SameLine();
 
