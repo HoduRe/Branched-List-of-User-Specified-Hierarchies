@@ -12,3 +12,5 @@ TASK LIST:
 - Set child node under node
 - Set child node and all childs under node
 
+Memory leaks?
+

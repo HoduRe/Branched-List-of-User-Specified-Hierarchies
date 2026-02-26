@@ -1,10 +1,10 @@
 #include "BLUSH.h"
 
-BLUSHNode::BLUSHNode() : nodeName("NewNode"), childNodes(), parentNode(nullptr) {}
+BLUSHNode::BLUSHNode() : nodeName("NewNode"), childNodes() {}
 
-BLUSHNode::BLUSHNode(std::string _name, BLUSHNode* _parent) : nodeName(_name), childNodes(), parentNode(_parent) {}
+BLUSHNode::BLUSHNode(std::string _name) : nodeName(_name), childNodes() {}
 
-BLUSHNode::~BLUSHNode() { parentNode = nullptr; }
+BLUSHNode::~BLUSHNode() {}
 
 BLUSHTree::BLUSHTree() : treeName("NewTree"), rootNodes() {}
 
@@ -13,7 +13,7 @@ BLUSHTree::BLUSHTree(std::string _name) : treeName(_name), rootNodes() {}
 BLUSHTree::~BLUSHTree() {}
 
 BLUSH::BLUSH(SDL_Window* _window, int _screenWidth, int _screenHeight) : windowRef(_window), screenWidth(_screenWidth), screenHeight(_screenHeight),
-currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer("") {
+currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer(""), pendingAction(PENDING_ACTION::NONE), includeChildNodes(false), nodeToggle(NODE_TOGGLE::NONE) {
 
 	LoadDataTrees();
 
@@ -21,6 +21,7 @@ currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer("") {
 
 BLUSH::~BLUSH() {
 
+	for (size_t i = 0; i < trees.size(); i++) { trees[i].rootNodes.clear(); }
 	trees.clear();
 
 }
@@ -36,7 +37,14 @@ bool BLUSH::Update() {
 	ImGui::SetNextWindowSize(winSize);
 	ImGui::Begin("Tree List", NULL, flags);
 
-	if (ImGui::Button("Create New Tree")) { trees.push_back(BLUSHTree()); }
+	if (ImGui::Button("Create New Tree")) {
+
+		int newIndex = trees.size();
+		trees.push_back(BLUSHTree());
+		currentTreeIndex = newIndex;
+		strcpy_s(treeNameBuffer, sizeof(treeNameBuffer), trees[newIndex].treeName.c_str());
+
+	}
 
 	int upTree = -1, downTree = -1;
 
@@ -55,8 +63,8 @@ bool BLUSH::Update() {
 
 		if (i == currentTreeIndex) {
 
-			DrawTreeDataEditingMenu(trees[i].treeName, winPos.x + winSize.x);
-			DrawTreeData(winPos.x + winSize.x, winPos.y);
+			DrawTreeDataEditingMenu(trees[i].treeName, trees[i].rootNodes, winPos.x + winSize.x);
+			DrawTreeData(trees[i].rootNodes, winPos.x + winSize.x, winPos.y);
 
 		}
 
@@ -69,7 +77,7 @@ bool BLUSH::Update() {
 }
 
 
-void BLUSH::DrawTreeData(int initialX, int initialY) {
+void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY) {
 
 	static ImVec2 winPos = ImVec2(initialX, initialY);
 	static ImVec2 winSize = ImVec2(screenWidth * DATA_MENU_MULTIPLIER, screenHeight * 0.8f);
@@ -79,15 +87,29 @@ void BLUSH::DrawTreeData(int initialX, int initialY) {
 	ImGui::SetNextWindowSize(winSize);
 	ImGui::Begin("Tree Data", NULL, flags);
 
-	if (ImGui::Button("Create New Node")) { trees.push_back(BLUSHTree()); }
+	for (size_t i = 0; i < rootNodes.size(); i++) {
 
+		// if (ImGui::Button("Haa")) {} ImGui::SameLine();
+
+		if (nodeToggle == NODE_TOGGLE::SET_OPEN) { ImGui::SetNextItemOpen(true); }
+		if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { ImGui::SetNextItemOpen(false); }
+
+		if (ImGui::TreeNode(ImGuiBase::MakeImGuiName(rootNodes[i].nodeName, i).c_str())) {
+
+
+
+			ImGui::TreePop();
+
+		}
+
+	}
 
 	ImGui::End();
 
 }
 
 
-void BLUSH::DrawTreeDataEditingMenu(std::string& name, int sizeX) {
+void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& rootNodes, int sizeX) {
 
 	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
 
@@ -95,11 +117,23 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, int sizeX) {
 	ImGui::SetNextWindowSize(ImVec2(screenWidth * DATA_MENU_MULTIPLIER, screenHeight * 0.085f));
 	ImGui::Begin("##DataEditor", NULL, flags);
 
+	ImGui::SetNextItemWidth(screenWidth * DATA_MENU_MULTIPLIER * 0.5f);
 	ImGui::InputText("##treeNameEditor", treeNameBuffer, sizeof(treeNameBuffer));
-	name = treeNameBuffer;
-	if (ImGui::Button("Create New Node")) { trees.push_back(BLUSHTree()); }
+	name = treeNameBuffer; ImGui::SameLine();
+
+	if (ImGui::Button("New Root Node")) { rootNodes.push_back(BLUSHNode()); } ImGui::SameLine();
+	if (ImGui::Button("New Child Node")) { pendingAction = PENDING_ACTION::CREATE; } ImGui::Separator();
+	if (ImGui::Button(nodeToggle == NODE_TOGGLE::OPEN ? "Open All Nodes" : "Close All Nodes")) { pendingAction = PENDING_ACTION::MOVE; } ImGui::SameLine();
+	ImGui::Checkbox("Include Child Nodes", &includeChildNodes); ImGui::SameLine();
+	if (ImGui::Button("Delete Node")) { pendingAction = PENDING_ACTION::DELETE; } ImGui::SameLine();
+
+	if (ImGui::Button("Move Node to Root")) {
 
 
+
+	} ImGui::SameLine();
+
+	if (ImGui::Button("Move Node")) { pendingAction = PENDING_ACTION::MOVE; }
 	ImGui::End();
 
 }
@@ -130,13 +164,13 @@ void BLUSH::SaveDataTrees() {
 }
 
 
-void BLUSH::SaveDataTreeChildNodes(BLUSHNode* node, pugi::xml_node& xmlNode, int index) {
+void BLUSH::SaveDataTreeChildNodes(const BLUSHNode& node, pugi::xml_node& xmlNode, int index) {
 
 	pugi::xml_node childNode = xmlNode.append_child(("Node" + std::to_string(index)).c_str());
-	childNode.append_attribute("nodeValue") = node->nodeName.c_str();
+	childNode.append_attribute("nodeValue") = node.nodeName.c_str();
 	index++;
 
-	for (size_t k = 0; k < node->childNodes.size(); k++) { SaveDataTreeChildNodes(node->childNodes[k], childNode, index); }
+	for (size_t k = 0; k < node.childNodes.size(); k++) { SaveDataTreeChildNodes(node.childNodes[k], childNode, index); }
 
 }
 
@@ -154,8 +188,7 @@ void BLUSH::LoadDataTrees() {
 
 			for (pugi::xml_node treeNode = baseNode.first_child(); treeNode; treeNode = treeNode.next_sibling()) {
 
-				BLUSHNode newChildNode = LoadDataTreeChildNodes(nullptr, treeNode);
-				newTree.rootNodes.push_back(&newChildNode);
+				newTree.rootNodes.push_back(LoadDataTreeChildNodes(treeNode));
 
 			}
 
@@ -173,14 +206,14 @@ void BLUSH::LoadDataTrees() {
 
 }
 
-BLUSHNode BLUSH::LoadDataTreeChildNodes(BLUSHNode* parentNode, pugi::xml_node& treeNode) {
+BLUSHNode BLUSH::LoadDataTreeChildNodes(pugi::xml_node& treeNode) {
 
-	BLUSHNode newNode(treeNode.attribute("nodeValue").as_string(), parentNode);
+	BLUSHNode newNode(treeNode.attribute("nodeValue").as_string());
 
 	for (pugi::xml_node childNode = treeNode.first_child(); childNode; childNode = childNode.next_sibling()) {
 
-		BLUSHNode newChildNode = LoadDataTreeChildNodes(&newNode, childNode);
-		newNode.childNodes.push_back(&newChildNode);
+		BLUSHNode newChildNode = LoadDataTreeChildNodes(childNode);
+		newNode.childNodes.push_back(newChildNode);
 
 	}
 

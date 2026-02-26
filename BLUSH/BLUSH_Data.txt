@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 <BLUSH_Trees>
-	<Tree0 name="Why though" />
-	<Tree1 name="NeswTr" />
+	<Tree0 name="NewTree">
+		<Node0 nodeValue="NewNode" />
+		<Node0 nodeValue="NewNode" />
+		<Node0 nodeValue="NewNode" />
+	</Tree0>
+	<Tree1 name="NewTree" />
 	<Tree2 name="NewTree" />
 </BLUSH_Trees>
