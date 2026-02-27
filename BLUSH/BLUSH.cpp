@@ -13,7 +13,7 @@ BLUSHTree::BLUSHTree(std::string _name) : treeName(_name), rootNodes() {}
 BLUSHTree::~BLUSHTree() {}
 
 BLUSH::BLUSH(SDL_Window* _window, int _screenWidth, int _screenHeight) : windowRef(_window), screenWidth(_screenWidth), screenHeight(_screenHeight),
-currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer(""), pendingAction(PENDING_ACTION::NONE), includeChildNodes(false), selectedNode(-1),
+currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer(""), pendingAction(PENDING_ACTION::NONE), includeChildNodes(true), selectedNode(-1),
 selectedNodeAux(-1), nodeToggle(NODE_TOGGLE::SET_OPEN) {
 
 	LoadDataTrees();
@@ -78,13 +78,16 @@ bool BLUSH::Update() {
 }
 
 
-BLUSHNode* BLUSH::GetNodeByID(int id) {
+BLUSHTree* BLUSH::GetTree(int index) { return currentTreeIndex < trees.size() ? &trees[index] : nullptr; }
 
-	if (!currentTreeIndex < trees.size()) { return nullptr; }
+
+BLUSHNode* BLUSH::GetNodeByID(int id, BLUSHNode* parentRef) {
+
+	if (!(currentTreeIndex < trees.size())) { return nullptr; }
 
 	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
 
-		BLUSHNode* nodeAux = GetChildNodeByID(trees[currentTreeIndex].rootNodes[i], id);
+		BLUSHNode* nodeAux = GetChildNodeByID(trees[currentTreeIndex].rootNodes[i], id, parentRef);
 		if (nodeAux != nullptr) { return nodeAux; }
 
 	}
@@ -94,14 +97,25 @@ BLUSHNode* BLUSH::GetNodeByID(int id) {
 }
 
 
-BLUSHNode* BLUSH::GetChildNodeByID(BLUSHNode& parentNode, int id) {
+BLUSHNode* BLUSH::GetChildNodeByID(BLUSHNode& parentNode, int id, BLUSHNode* parentRef) {
 
-	if (parentNode.nodeID == id) { return &parentNode; }
+	if (parentNode.nodeID == id) {
+
+		parentRef = nullptr;
+		return &parentNode;
+
+	}
 
 	for (size_t i = 0; i < parentNode.childNodes.size(); i++) {
 
-		BLUSHNode* nodeAux = GetChildNodeByID(parentNode.childNodes[i], id);
-		if (nodeAux != nullptr) { return nodeAux; }
+		BLUSHNode* nodeAux = GetChildNodeByID(parentNode.childNodes[i], id, parentRef);
+
+		if (nodeAux != nullptr) {
+
+			parentRef = &parentNode;
+			return nodeAux;
+
+		}
 
 	}
 
@@ -185,12 +199,18 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 
 void BLUSH::HandlePendingAction() {
 
+	BLUSHTree* treeRef = nullptr;
+	BLUSHNode* nodeRef = nullptr, * parentNodeRef = nullptr;
+	bool forceReset = false;
+
 	if (selectedNode != -1) {
 
 		switch (pendingAction) {
 
 		case PENDING_ACTION::CREATE:
 
+			nodeRef = GetNodeByID(selectedNode, nullptr);
+			if (nodeRef != nullptr) { nodeRef->childNodes.push_back(BLUSHNode()); }
 			break;
 
 		case PENDING_ACTION::DELETE:
@@ -199,11 +219,52 @@ void BLUSH::HandlePendingAction() {
 
 		case PENDING_ACTION::MOVE_TO_ROOT:
 
+			nodeRef = GetNodeByID(selectedNode, parentNodeRef);
+			treeRef = GetTree(currentTreeIndex);
+
+			if (nodeRef != nullptr && parentNodeRef != nullptr && treeRef != nullptr) {
+
+				if (!includeChildNodes) {
+
+					std::vector<BLUSHNode> childNodesRef = nodeRef->childNodes;
+
+					for (size_t childIndex = 0; childIndex < nodeRef->childNodes.size(); childIndex++) {
+
+						parentNodeRef->childNodes.push_back(nodeRef->childNodes[childIndex]);
+
+					}
+
+					nodeRef->childNodes.clear();
+
+				}
+
+				treeRef->rootNodes.push_back(*nodeRef);
+
+				// Calling childNodes.erase was giving a xUtility error, even though I shouldn't have dependend on vector memory reallocation, so instead I cooked this crap up. Eat it up, buddy
+				std::vector<BLUSHNode> childNodesRef = parentNodeRef->childNodes;
+				parentNodeRef->childNodes.clear();
+
+				for (size_t childIndex = 0; childIndex < childNodesRef.size(); childIndex++) {
+
+					if (childNodesRef[childIndex].nodeID != nodeRef->nodeID) { parentNodeRef->childNodes.push_back(childNodesRef[childIndex]); }
+
+				}
+
+			}
+
 			break;
 
 		case PENDING_ACTION::MOVE:
 
 			break;
+
+		}
+
+		if (pendingAction != PENDING_ACTION::MOVE || forceReset) {
+
+			pendingAction = PENDING_ACTION::NONE;
+			selectedNode = -1;
+			selectedNodeAux = -1;
 
 		}
 

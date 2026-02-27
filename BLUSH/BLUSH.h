@@ -69,8 +69,9 @@ public:
 
 private:
 
-	BLUSHNode* GetNodeByID(int id);
-	BLUSHNode* GetChildNodeByID(BLUSHNode& parentNode, int id);
+	BLUSHTree* GetTree(int index);
+	BLUSHNode* GetNodeByID(int id, BLUSHNode* parentRef);
+	BLUSHNode* GetChildNodeByID(BLUSHNode& parentNode, int id, BLUSHNode* parentRef);
 
 	void DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY);
 	void DrawTreeChildData(const BLUSHNode& node, int level);
