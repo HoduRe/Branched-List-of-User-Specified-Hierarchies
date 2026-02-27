@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <BLUSH_Trees>
 	<Tree0 name="NewTreedd">
-		<Node0 nodeValue="NewNode">
-			<Node1 nodeValue="NewNode" />
-		</Node0>
+		<Node0 nodeValue="NewNode" />
+		<Node0 nodeValue="NewNode" />
+		<Node0 nodeValue="NewNode" />
 		<Node0 nodeValue="NewNode" />
 		<Node0 nodeValue="NewNode" />
 	</Tree0>

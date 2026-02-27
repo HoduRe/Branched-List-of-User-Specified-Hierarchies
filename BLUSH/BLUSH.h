@@ -32,7 +32,7 @@ public:
 
 public:
 
-	const int nodeID;
+	int nodeID;
 	std::string nodeName;
 	std::vector<BLUSHNode> childNodes;
 
@@ -70,8 +70,10 @@ public:
 private:
 
 	BLUSHTree* GetTree(int index);
-	BLUSHNode* GetNodeByID(int id, BLUSHNode* parentRef);
-	BLUSHNode* GetChildNodeByID(BLUSHNode& parentNode, int id, BLUSHNode* parentRef);
+	BLUSHNode* GetNodeByID(int id);
+	BLUSHNode* GetChildNodeByID(BLUSHNode& parentNode, int id);
+	void DeleteNodeByID(int id);
+	int DeleteChildNodeByID(BLUSHNode& parentNode, int id);
 
 	void DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY);
 	void DrawTreeChildData(const BLUSHNode& node, int level);
