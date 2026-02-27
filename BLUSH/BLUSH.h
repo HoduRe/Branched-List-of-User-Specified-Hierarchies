@@ -32,10 +32,13 @@ public:
 
 public:
 
-	static int idGenerator;
 	const int nodeID;
 	std::string nodeName;
 	std::vector<BLUSHNode> childNodes;
+
+private:
+
+	static int idGenerator;
 
 };
 
@@ -65,6 +68,9 @@ public:
 	void SaveDataTrees();
 
 private:
+
+	BLUSHNode* GetNodeByID(int id);
+	BLUSHNode* GetChildNodeByID(BLUSHNode& parentNode, int id);
 
 	void DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY);
 	void DrawTreeChildData(const BLUSHNode& node, int level);

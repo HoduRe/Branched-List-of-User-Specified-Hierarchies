@@ -78,6 +78,38 @@ bool BLUSH::Update() {
 }
 
 
+BLUSHNode* BLUSH::GetNodeByID(int id) {
+
+	if (!currentTreeIndex < trees.size()) { return nullptr; }
+
+	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
+
+		BLUSHNode* nodeAux = GetChildNodeByID(trees[currentTreeIndex].rootNodes[i], id);
+		if (nodeAux != nullptr) { return nodeAux; }
+
+	}
+
+	return nullptr;
+
+}
+
+
+BLUSHNode* BLUSH::GetChildNodeByID(BLUSHNode& parentNode, int id) {
+
+	if (parentNode.nodeID == id) { return &parentNode; }
+
+	for (size_t i = 0; i < parentNode.childNodes.size(); i++) {
+
+		BLUSHNode* nodeAux = GetChildNodeByID(parentNode.childNodes[i], id);
+		if (nodeAux != nullptr) { return nodeAux; }
+
+	}
+
+	return nullptr;
+
+}
+
+
 void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY) {
 
 	static ImVec2 winPos = ImVec2(initialX, initialY);
@@ -94,6 +126,7 @@ void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int in
 	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { nodeToggle = NODE_TOGGLE::OPEN; }
 
 	ImGui::End();
+	HandlePendingAction();
 
 }
 
@@ -152,7 +185,29 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 
 void BLUSH::HandlePendingAction() {
 
+	if (selectedNode != -1) {
 
+		switch (pendingAction) {
+
+		case PENDING_ACTION::CREATE:
+
+			break;
+
+		case PENDING_ACTION::DELETE:
+
+			break;
+
+		case PENDING_ACTION::MOVE_TO_ROOT:
+
+			break;
+
+		case PENDING_ACTION::MOVE:
+
+			break;
+
+		}
+
+	}
 
 }
 
