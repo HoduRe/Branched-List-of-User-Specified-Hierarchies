@@ -3,8 +3,6 @@
 TASK LIST:
 
 - Add tabulations based on level
-- Button to create new node on top
-- Button to create new node on selection
 - Button to delete selected node
 - Button to delete selected node and childs
 - Do upTree downTree
@@ -17,3 +15,5 @@ When an action has been taken, and select is enabled, hide all other buttons, an
 Can we make tree nodes that are empty be text instead of a tree node, or something?
 Memory leaks?
 
+// Can't we just have a buffer name and not a name at all?
+// Clean code, because now we can't do things in one click

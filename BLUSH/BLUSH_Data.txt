@@ -1,11 +1,19 @@
 <?xml version="1.0"?>
 <BLUSH_Trees>
 	<Tree0 name="NewTreedd">
-		<Node0 nodeValue="NewNode" />
-		<Node0 nodeValue="NewNode" />
-		<Node0 nodeValue="NewNode" />
-		<Node0 nodeValue="NewNode" />
-		<Node0 nodeValue="NewNode" />
+		<Node0 nodeValue="">
+			<Node1 nodeValue="Although">
+				<Node2 nodeValue="Na" />
+			</Node1>
+		</Node0>
+		<Node0 nodeValue="" />
+		<Node0 nodeValue="" />
+		<Node0 nodeValue="">
+			<Node1 nodeValue="Wut" />
+		</Node0>
+		<Node0 nodeValue="" />
+		<Node0 nodeValue="Really" />
+		<Node0 nodeValue="" />
 	</Tree0>
 	<Tree1 name="NewTree" />
 	<Tree2 name="NewTree" />

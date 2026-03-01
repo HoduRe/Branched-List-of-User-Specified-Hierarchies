@@ -2,7 +2,7 @@
 
 int BLUSHNode::idGenerator = 0;
 
-BLUSHNode::BLUSHNode(std::string _name) : nodeName(_name), childNodes(), nodeID(idGenerator++) {}
+BLUSHNode::BLUSHNode(std::string _name) : nodeName(_name), childNodes(), nodeID(idGenerator++) { strncpy_s(nameBuffer, _name.c_str(), _name.length()); }
 
 BLUSHNode::~BLUSHNode() {}
 
@@ -119,7 +119,7 @@ void BLUSH::DeleteNodeByID(int id) {
 
 	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
 
-		int toDelete = DeleteChildNodeByID(trees[currentTreeIndex].rootNodes[i], id);		
+		int toDelete = DeleteChildNodeByID(trees[currentTreeIndex].rootNodes[i], id);
 		if (toDelete == 1) { trees[currentTreeIndex].rootNodes.erase(trees[currentTreeIndex].rootNodes.begin() + i); return; }
 
 	}
@@ -135,10 +135,10 @@ int BLUSH::DeleteChildNodeByID(BLUSHNode& parentNode, int id) {
 
 		int toDelete = DeleteChildNodeByID(parentNode.childNodes[i], id);
 		if (toDelete > 0) {
-			
+
 			if (toDelete == 1) { parentNode.childNodes.erase(parentNode.childNodes.begin() + i); toDelete = 2; }
 			return toDelete;
-		
+
 		}
 
 	}
@@ -158,7 +158,7 @@ void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int in
 	ImGui::SetNextWindowSize(winSize);
 	ImGui::Begin("Tree Data", NULL, flags);
 
-	for (size_t i = 0; i < rootNodes.size(); i++) { DrawTreeChildData(rootNodes[i], 0); }
+	for (size_t i = 0; i < rootNodes.size(); i++) { DrawTreeChildData(rootNodes[i]); }
 
 	if (nodeToggle == NODE_TOGGLE::SET_OPEN) { nodeToggle = NODE_TOGGLE::CLOSE; }
 	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { nodeToggle = NODE_TOGGLE::OPEN; }
@@ -169,11 +169,16 @@ void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int in
 }
 
 
-void BLUSH::DrawTreeChildData(const BLUSHNode& node, int level) {
+void BLUSH::DrawTreeChildData(BLUSHNode& node) {
+
+	std::string nameBuffer = ImGuiBase::MakeImGuiName(node.nodeName, node.nodeID);
+	ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+	if (selectedNode == node.nodeID) { nodeFlags |= ImGuiTreeNodeFlags_Selected; }
 
 	if (pendingAction > PENDING_ACTION::NONE) {
 
-		if (ImGui::Button("Select")) { selectedNode = node.nodeID; }
+		if (ImGui::Button(ImGuiBase::MakeImGuiName("Select", node.nodeID).c_str())) { selectedNode = node.nodeID; }
 		ImGui::SameLine();
 
 	}
@@ -181,12 +186,25 @@ void BLUSH::DrawTreeChildData(const BLUSHNode& node, int level) {
 	if (nodeToggle == NODE_TOGGLE::SET_OPEN) { ImGui::SetNextItemOpen(true); }
 	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { ImGui::SetNextItemOpen(false); }
 
-	if (ImGui::TreeNode(ImGuiBase::MakeImGuiName(node.nodeName, node.nodeID).c_str())) {
+	bool open = ImGui::TreeNodeEx(nameBuffer.c_str(), nodeFlags);
+	
+	if (ImGui::IsItemClicked()) { selectedNode = node.nodeID; }
 
-		for (size_t i = 0; i < node.childNodes.size(); i++) { DrawTreeChildData(node.childNodes[i], level + 1); }
+	if (selectedNode == node.nodeID) {
+
+		ImGui::SetNextItemWidth(screenWidth * DATA_MENU_MULTIPLIER * 0.5f);
+		ImGui::InputText(ImGuiBase::MakeImGuiName("##nodeNameEdit", node.nodeID).c_str(), node.nameBuffer, sizeof(node.nameBuffer));
+
+	}
+
+	if (open) {
+
+		for (size_t i = 0; i < node.childNodes.size(); i++) { DrawTreeChildData(node.childNodes[i]); }
 		ImGui::TreePop();
 
 	}
+
+	node.nodeName = node.nameBuffer;
 
 }
 
@@ -274,8 +292,8 @@ void BLUSH::HandlePendingAction() {
 		if (pendingAction != PENDING_ACTION::MOVE || forceReset) {
 
 			pendingAction = PENDING_ACTION::NONE;
-			selectedNode = -1;
-			selectedNodeAux = -1;
+			//selectedNode = -1;
+			//selectedNodeAux = -1;
 
 		}
 
@@ -312,7 +330,7 @@ void BLUSH::SaveDataTrees() {
 void BLUSH::SaveDataTreeChildNodes(const BLUSHNode& node, pugi::xml_node& xmlNode, int index) {
 
 	pugi::xml_node childNode = xmlNode.append_child(("Node" + std::to_string(index)).c_str());
-	childNode.append_attribute("nodeValue") = node.nodeName.c_str();
+	childNode.append_attribute("nodeValue") = node.nameBuffer;
 	index++;
 
 	for (size_t k = 0; k < node.childNodes.size(); k++) { SaveDataTreeChildNodes(node.childNodes[k], childNode, index); }

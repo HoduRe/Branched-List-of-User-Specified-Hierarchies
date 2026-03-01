@@ -2,6 +2,7 @@
 #include "CircularMotion/CircularMotion.h"
 #define SAVE_DATA_FILE "BLUSH_Data.txt"
 #define DATA_MENU_MULTIPLIER 0.6f
+#define NODE_NAME_BUFFER_SIZE 256
 
 enum class PENDING_ACTION {
 
@@ -34,6 +35,7 @@ public:
 
 	int nodeID;
 	std::string nodeName;
+	char nameBuffer[NODE_NAME_BUFFER_SIZE];
 	std::vector<BLUSHNode> childNodes;
 
 private:
@@ -76,7 +78,7 @@ private:
 	int DeleteChildNodeByID(BLUSHNode& parentNode, int id);
 
 	void DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY);
-	void DrawTreeChildData(const BLUSHNode& node, int level);
+	void DrawTreeChildData(BLUSHNode& node);
 	void DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& rootNodes, int sizeX);
 	void HandlePendingAction();
 	void LoadDataTrees();
