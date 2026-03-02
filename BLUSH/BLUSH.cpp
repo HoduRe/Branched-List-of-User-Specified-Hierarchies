@@ -113,30 +113,56 @@ BLUSHNode* BLUSH::GetChildNodeByID(BLUSHNode& parentNode, int id) {
 }
 
 
-void BLUSH::DeleteNodeByID(int id) {
+void BLUSH::DeleteNodeByID(int id, bool deleteChilds) {
 
 	if (!(currentTreeIndex < trees.size())) { return; }
 
 	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
 
-		int toDelete = DeleteChildNodeByID(trees[currentTreeIndex].rootNodes[i], id);
-		if (toDelete == 1) { trees[currentTreeIndex].rootNodes.erase(trees[currentTreeIndex].rootNodes.begin() + i); return; }
+		int toDelete = DeleteChildNodeByID(trees[currentTreeIndex].rootNodes[i], id, deleteChilds);
+		
+		if (toDelete == 1) {
+			
+			if (!deleteChilds) {
+
+				std::vector<BLUSHNode>::iterator nodeIt = trees[currentTreeIndex].rootNodes.begin() + i; // Can't use this for erase because iterator will be broken due to vector repositioning its memory
+				trees[currentTreeIndex].rootNodes.insert(trees[currentTreeIndex].rootNodes.end(), nodeIt->childNodes.begin(), nodeIt->childNodes.end());
+			
+			}
+
+			trees[currentTreeIndex].rootNodes.erase(trees[currentTreeIndex].rootNodes.begin() + i);
+			return;
+		
+		}
 
 	}
 
 }
 
 
-int BLUSH::DeleteChildNodeByID(BLUSHNode& parentNode, int id) {
+int BLUSH::DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds) {
 
 	if (parentNode.nodeID == id) { return 1; }
 
 	for (size_t i = 0; i < parentNode.childNodes.size(); i++) {
 
-		int toDelete = DeleteChildNodeByID(parentNode.childNodes[i], id);
+		int toDelete = DeleteChildNodeByID(parentNode.childNodes[i], id, deleteChilds);
 		if (toDelete > 0) {
 
-			if (toDelete == 1) { parentNode.childNodes.erase(parentNode.childNodes.begin() + i); toDelete = 2; }
+			if (toDelete == 1) {
+				
+				if (!deleteChilds) {
+
+					std::vector<BLUSHNode>::iterator nodeIt = parentNode.childNodes.begin() + i; // Can't use this for erase because iterator will be broken due to vector repositioning its memory
+					parentNode.childNodes.insert(parentNode.childNodes.end(), nodeIt->childNodes.begin(), nodeIt->childNodes.end());
+
+				}
+
+				parentNode.childNodes.erase(parentNode.childNodes.begin() + i);
+				toDelete = 2;
+			
+			}
+
 			return toDelete;
 
 		}
@@ -178,7 +204,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
 	if (pendingAction > PENDING_ACTION::NONE) {
 
-		if (ImGui::Button(ImGuiBase::MakeImGuiName("Select", node.nodeID).c_str())) { selectedNode = node.nodeID; }
+		if (ImGui::Button(ImGuiBase::MakeImGuiName("Select", node.nodeID).c_str())) { selectedNodeAux = node.nodeID; }
 		ImGui::SameLine();
 
 	}
@@ -187,7 +213,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { ImGui::SetNextItemOpen(false); }
 
 	bool open = ImGui::TreeNodeEx(nameBuffer.c_str(), nodeFlags);
-	
+
 	if (ImGui::IsItemClicked()) { selectedNode = node.nodeID; }
 
 	if (selectedNode == node.nodeID) {
@@ -243,7 +269,7 @@ void BLUSH::HandlePendingAction() {
 
 	BLUSHTree* treeRef = nullptr;
 	BLUSHNode* nodeRef = nullptr;
-	bool forceReset = false;
+	bool reset = false;
 
 	if (selectedNode != -1) {
 
@@ -252,13 +278,19 @@ void BLUSH::HandlePendingAction() {
 		case PENDING_ACTION::CREATE:
 
 			nodeRef = GetNodeByID(selectedNode);
-			if (nodeRef != nullptr) { nodeRef->childNodes.push_back(BLUSHNode()); }
+
+			if (nodeRef != nullptr) {
+				
+				nodeRef->childNodes.push_back(BLUSHNode());
+				selectedNode = nodeRef->childNodes[nodeRef->childNodes.size() - 1].nodeID;
+
+			}
+
+			pendingAction = PENDING_ACTION::NONE;
+
 			break;
 
-		case PENDING_ACTION::DELETE:
-
-			break;
-
+		case PENDING_ACTION::DELETE: DeleteNodeByID(selectedNode, includeChildNodes); reset = true; break;
 		case PENDING_ACTION::MOVE_TO_ROOT:
 
 			nodeRef = GetNodeByID(selectedNode);
@@ -276,24 +308,52 @@ void BLUSH::HandlePendingAction() {
 				}
 
 				BLUSHNode nodecopy = *nodeRef;
-				DeleteNodeByID(nodeRef->nodeID);
+				DeleteNodeByID(nodeRef->nodeID, true);
 				treeRef->rootNodes.push_back(nodecopy);
 
 			}
+
+			pendingAction = PENDING_ACTION::NONE;
 
 			break;
 
 		case PENDING_ACTION::MOVE:
 
+			if (selectedNodeAux != -1) {
+
+				nodeRef = GetNodeByID(selectedNode);
+				BLUSHNode* newParentRef = GetNodeByID(selectedNodeAux);
+
+				if (nodeRef != nullptr && newParentRef != nullptr) {
+
+					std::vector<BLUSHNode> childNodesRef;
+
+					if (includeChildNodes) {
+
+						childNodesRef = nodeRef->childNodes;
+						nodeRef->childNodes.clear();
+
+					}
+
+					BLUSHNode nodecopy = *nodeRef;
+					DeleteNodeByID(nodeRef->nodeID, true);
+					newParentRef->childNodes.push_back(nodecopy);
+
+				}
+
+				reset = true;
+
+			}
+
 			break;
 
 		}
 
-		if (pendingAction != PENDING_ACTION::MOVE || forceReset) {
+		if (reset) {
 
 			pendingAction = PENDING_ACTION::NONE;
-			//selectedNode = -1;
-			//selectedNodeAux = -1;
+			selectedNode = -1;
+			selectedNodeAux = -1;
 
 		}
 

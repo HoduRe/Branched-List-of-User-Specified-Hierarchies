@@ -74,8 +74,8 @@ private:
 	BLUSHTree* GetTree(int index);
 	BLUSHNode* GetNodeByID(int id);
 	BLUSHNode* GetChildNodeByID(BLUSHNode& parentNode, int id);
-	void DeleteNodeByID(int id);
-	int DeleteChildNodeByID(BLUSHNode& parentNode, int id);
+	void DeleteNodeByID(int id, bool deleteChilds);
+	int DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds);
 
 	void DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY);
 	void DrawTreeChildData(BLUSHNode& node);
