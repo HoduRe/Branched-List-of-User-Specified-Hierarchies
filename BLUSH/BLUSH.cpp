@@ -282,7 +282,6 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 
 void BLUSH::HandlePendingAction() {
 
-	BLUSHTree* treeRef = nullptr;
 	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef(nullptr, nullptr);
 	bool reset = false;
 
@@ -306,85 +305,15 @@ void BLUSH::HandlePendingAction() {
 			break;
 
 		case PENDING_ACTION::DELETE: DeleteNodeByID(selectedNode, includeChildNodes); reset = true; break;
+
 		case PENDING_ACTION::MOVE_TO_ROOT:
 
-			nodeAndParentRef = GetNodeAndParentByID(selectedNode);
-			treeRef = GetTree(currentTreeIndex);
-
-			if (nodeAndParentRef.first != nullptr && treeRef != nullptr) {
-
-				std::vector<BLUSHNode> childNodesRef;
-
-				if (!includeChildNodes) {
-
-					childNodesRef = nodeAndParentRef.first->childNodes;
-					nodeAndParentRef.first->childNodes.clear();
-
-				}
-
-				BLUSHNode nodecopy = *nodeAndParentRef.first;
-				DeleteNodeByID(nodeAndParentRef.first->nodeID, true);
-				treeRef->rootNodes.push_back(nodecopy);
-
-			}
-
-			pendingAction = PENDING_ACTION::NONE;
-
-			break;
+			MoveNode(-1);
+			reset = true; break;
 
 		case PENDING_ACTION::MOVE:
 
-			if (selectedNodeAux != -1) {
-
-				nodeAndParentRef = GetNodeAndParentByID(selectedNode);
-				std::pair<BLUSHNode*, BLUSHNode*> newParentRef = GetNodeAndParentByID(selectedNodeAux);
-				int originalParentRefId = -1;
-
-				if (nodeAndParentRef.second != nullptr) { originalParentRefId = nodeAndParentRef.second->nodeID; }
-
-				if (nodeAndParentRef.first != nullptr && newParentRef.first != nullptr) {
-
-					std::vector<BLUSHNode> childNodesRef;
-
-					if (!includeChildNodes) {
-
-						childNodesRef = nodeAndParentRef.first->childNodes;
-						nodeAndParentRef.first->childNodes.clear();
-
-					}
-
-					BLUSHNode nodecopy = *nodeAndParentRef.first;
-					DeleteNodeByID(nodeAndParentRef.first->nodeID, true);
-					newParentRef.first->childNodes.push_back(nodecopy);
-
-					if (!includeChildNodes) {
-
-						if (originalParentRefId != -1) {
-
-							std::pair<BLUSHNode*, BLUSHNode*> originalParentRef = GetNodeAndParentByID(originalParentRefId); // We get it after vector relocated memory
-							if (originalParentRef.first != nullptr) {
-
-								originalParentRef.first->childNodes.insert(originalParentRef.first->childNodes.end(), childNodesRef.begin(), childNodesRef.end());
-
-							}
-
-						}
-
-						else {
-
-							treeRef = GetTree(currentTreeIndex);
-							if (treeRef != nullptr) { treeRef->rootNodes.insert(treeRef->rootNodes.end(), childNodesRef.begin(), childNodesRef.end()); }
-
-						}
-
-					}
-
-				}
-
-				reset = true;
-
-			}
-
+			if (selectedNodeAux != -1) { MoveNode(selectedNodeAux); reset = true; }
 			break;
 
 		}
@@ -394,6 +323,65 @@ void BLUSH::HandlePendingAction() {
 			pendingAction = PENDING_ACTION::NONE;
 			selectedNode = -1;
 			selectedNodeAux = -1;
+
+		}
+
+	}
+
+}
+
+
+void BLUSH::MoveNode(int newParentId) {
+
+	BLUSHTree* treeRef = nullptr;
+	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef = GetNodeAndParentByID(selectedNode);
+	std::pair<BLUSHNode*, BLUSHNode*> newParentRef(nullptr, nullptr);
+	int originalParentRefId = -1;
+
+	if (newParentId != -1) { newParentRef = GetNodeAndParentByID(selectedNodeAux); }
+	if (nodeAndParentRef.second != nullptr) { originalParentRefId = nodeAndParentRef.second->nodeID; }
+
+	if (nodeAndParentRef.first != nullptr) {
+
+		std::vector<BLUSHNode> childNodesRef;
+
+		if (!includeChildNodes) {
+
+			childNodesRef = nodeAndParentRef.first->childNodes;
+			nodeAndParentRef.first->childNodes.clear();
+
+		}
+
+		BLUSHNode nodecopy = *nodeAndParentRef.first;
+		DeleteNodeByID(nodeAndParentRef.first->nodeID, true);
+
+		if (!includeChildNodes) {
+
+			if (originalParentRefId != -1) {
+
+				std::pair<BLUSHNode*, BLUSHNode*> originalParentRef = GetNodeAndParentByID(originalParentRefId); // We get it after vector relocated memory
+				if (originalParentRef.first != nullptr) {
+
+					originalParentRef.first->childNodes.insert(originalParentRef.first->childNodes.end(), childNodesRef.begin(), childNodesRef.end());
+
+				}
+
+			}
+
+			else {
+
+				treeRef = GetTree(currentTreeIndex);
+				if (treeRef != nullptr) { treeRef->rootNodes.insert(treeRef->rootNodes.end(), childNodesRef.begin(), childNodesRef.end()); }
+
+			}
+
+		}
+
+		if (newParentRef.first != nullptr) { newParentRef.first->childNodes.push_back(nodecopy); }
+		else {
+
+			treeRef = GetTree(currentTreeIndex);
+			if (treeRef != nullptr) { treeRef->rootNodes.push_back(nodecopy); }
 
 		}
 

@@ -15,7 +15,11 @@
 		</Node0>
 		<Node0 nodeValue="Na" />
 		<Node0 nodeValue="Movable">
-			<Node1 nodeValue="NewNode" />
+			<Node1 nodeValue="Parent">
+				<Node2 nodeValue="Child">
+					<Node3 nodeValue="GrandChild" />
+				</Node2>
+			</Node1>
 			<Node1 nodeValue="NewNode" />
 			<Node1 nodeValue="NewNode" />
 			<Node1 nodeValue="NewNode" />

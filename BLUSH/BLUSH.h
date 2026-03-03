@@ -81,6 +81,7 @@ private:
 	void DrawTreeChildData(BLUSHNode& node);
 	void DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& rootNodes, int sizeX);
 	void HandlePendingAction();
+	void MoveNode(int newParentId);
 	void LoadDataTrees();
 	void SaveDataTreeChildNodes(const BLUSHNode& node, pugi::xml_node& xmlNode, int index);
 	BLUSHNode LoadDataTreeChildNodes(pugi::xml_node& treeNode);
