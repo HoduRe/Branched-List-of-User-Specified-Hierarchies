@@ -1,3 +1,4 @@
 # Branched-List-of-User-Specified-Hierarchies
 
-Add Rahab animation (Rahab card)
+A text-based tree-display application, in which you can add and move nodes within a series of trees.
+
