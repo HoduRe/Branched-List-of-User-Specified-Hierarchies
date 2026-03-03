@@ -2,8 +2,6 @@
 
 TASK LIST:
 
-- Do upTree downTree
-
 Memory leaks?
 
 Add Rahab animation (Rahab card)

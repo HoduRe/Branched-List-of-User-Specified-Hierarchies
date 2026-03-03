@@ -80,6 +80,7 @@ private:
 	void DeleteNodeByID(int id, bool deleteChilds);
 	int DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds);
 
+	void HandleTreeNodes(int upId, int downId);
 	void DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY);
 	void DrawTreeChildData(BLUSHNode& node);
 	void DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& rootNodes, int sizeX);

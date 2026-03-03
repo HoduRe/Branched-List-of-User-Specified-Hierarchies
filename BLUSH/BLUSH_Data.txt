@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <BLUSH_Trees>
-	<Tree0 name="NewTreedd">
+	<Tree0 name="Tree1">
 		<Node0 nodeValue="">
 			<Node1 nodeValue="Although" />
 		</Node0>
@@ -32,6 +32,6 @@
 			</Node1>
 		</Node0>
 	</Tree0>
-	<Tree1 name="NewTree" />
-	<Tree2 name="NewTree" />
+	<Tree1 name="Tree2" />
+	<Tree2 name="Tree4 zawa zawa" />
 </BLUSH_Trees>

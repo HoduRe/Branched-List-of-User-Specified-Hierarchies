@@ -72,6 +72,7 @@ bool BLUSH::Update() {
 	}
 
 	ImGui::End();
+	HandleTreeNodes(upTree, downTree);
 
 	return ret;
 
@@ -273,6 +274,26 @@ int BLUSH::DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds)
 
 }
 
+
+void BLUSH::HandleTreeNodes(int upId, int downId) {
+
+	if (upId > 0 && upId < trees.size()) {
+
+		trees.emplace(trees.begin() + upId - 1, trees[upId]);
+		trees.erase(trees.begin() + upId + 1);
+		currentTreeIndex += currentTreeIndex == upId ? -1 : currentTreeIndex == upId - 1 ? 1 : 0;
+
+	}
+
+	if (downId > -1 && downId < trees.size() - 1) {
+
+		trees.emplace(trees.begin() + downId, trees[downId + 1]);
+		trees.erase(trees.begin() + downId + 2);
+		currentTreeIndex += currentTreeIndex == downId ? 1 : currentTreeIndex == downId + 1 ? -1 : 0;
+
+	}
+
+}
 
 void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int initialY) {
 
