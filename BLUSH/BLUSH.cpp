@@ -128,6 +128,38 @@ std::pair<BLUSHNode*, BLUSHNode*> BLUSH::GetChildNodeAndParentByID(BLUSHNode& pa
 }
 
 
+bool BLUSH::ContainsNode(int id) {
+
+	if (id == -1) { return false; }
+
+	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
+		
+		bool contains = ContainsNewNodeChild(trees[currentTreeIndex].rootNodes[i], id); 
+		if (contains) { return true; }
+
+	}
+
+	return false;
+
+}
+
+
+bool BLUSH::ContainsNewNodeChild(BLUSHNode& parentNode, int id) {
+
+	if (parentNode.nodeID == id) { return true; }
+
+	for (size_t i = 0; i < parentNode.childNodes.size(); i++) {
+
+		bool contains = ContainsNewNodeChild(parentNode.childNodes[i], id);
+		if (contains) { return true; }
+
+	}
+
+	return false;
+
+}
+
+
 void BLUSH::DeleteNodeByID(int id, bool deleteChilds) {
 
 	if (!(currentTreeIndex < trees.size())) { return; }
@@ -225,6 +257,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
 	if (nodeToggle == NODE_TOGGLE::SET_OPEN) { ImGui::SetNextItemOpen(true); }
 	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { ImGui::SetNextItemOpen(false); }
+	if (newNodeIndex != -1 && ContainsNode(newNodeIndex)) { ImGui::SetNextItemOpen(true); }
 
 	bool open = ImGui::TreeNodeEx(nameBuffer.c_str(), nodeFlags);
 
@@ -266,17 +299,17 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 	name = treeNameBuffer; ImGui::SameLine();
 
 	if (ImGui::Button("New Root Node")) {
-		
+
 		BLUSHNode newNode;
 		selectedNode = newNode.nodeID;
 		newNodeIndex = selectedNode;
 		rootNodes.push_back(newNode);
 
 	}
-	
+
 	ImGui::SameLine();
 
-		if (ImGui::Button("New Child Node") && selectedNode != -1) { pendingAction = PENDING_ACTION::CREATE; } ImGui::Separator();
+	if (ImGui::Button("New Child Node") && selectedNode != -1) { pendingAction = PENDING_ACTION::CREATE; } ImGui::Separator();
 
 	if (ImGui::Button(nodeToggle == NODE_TOGGLE::OPEN ? "Open All Nodes" : "Close All Nodes")) {
 

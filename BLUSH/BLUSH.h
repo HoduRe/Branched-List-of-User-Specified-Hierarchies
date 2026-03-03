@@ -74,6 +74,8 @@ private:
 	BLUSHTree* GetTree(int index);
 	std::pair<BLUSHNode*, BLUSHNode*> GetNodeAndParentByID(int id);
 	std::pair<BLUSHNode*, BLUSHNode*> GetChildNodeAndParentByID(BLUSHNode& parentNode, int id);
+	bool ContainsNode(int id);
+	bool ContainsNewNodeChild(BLUSHNode& parentNode, int id);
 	void DeleteNodeByID(int id, bool deleteChilds);
 	int DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds);
 
