@@ -4,6 +4,7 @@ TASK LIST:
 
 // Creating nodes under a created node doesn't show them, but they are there
 // In both Move, we have to get the parent of the node, so that we can append it the childs of the node we are moving to root
+// Move node to itself
 
 - Do upTree downTree
 

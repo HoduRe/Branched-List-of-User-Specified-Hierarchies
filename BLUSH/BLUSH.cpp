@@ -81,34 +81,49 @@ bool BLUSH::Update() {
 BLUSHTree* BLUSH::GetTree(int index) { return currentTreeIndex < trees.size() ? &trees[index] : nullptr; }
 
 
-BLUSHNode* BLUSH::GetNodeByID(int id) {
+std::pair<BLUSHNode*, BLUSHNode*> BLUSH::GetNodeAndParentByID(int id) {
 
-	if (!(currentTreeIndex < trees.size())) { return nullptr; }
+	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParent(nullptr, nullptr);
+
+	if (!(currentTreeIndex < trees.size())) { return nodeAndParent; }
 
 	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
 
-		BLUSHNode* nodeAux = GetChildNodeByID(trees[currentTreeIndex].rootNodes[i], id);
-		if (nodeAux != nullptr) { return nodeAux; }
+		nodeAndParent = GetChildNodeAndParentByID(trees[currentTreeIndex].rootNodes[i], id);
+		if (nodeAndParent.first != nullptr) { return nodeAndParent; }
 
 	}
 
-	return nullptr;
+	return nodeAndParent;
 
 }
 
 
-BLUSHNode* BLUSH::GetChildNodeByID(BLUSHNode& parentNode, int id) {
+std::pair<BLUSHNode*, BLUSHNode*> BLUSH::GetChildNodeAndParentByID(BLUSHNode& parentNode, int id) {
 
-	if (parentNode.nodeID == id) { return &parentNode; }
+	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParent(nullptr, nullptr);
 
-	for (size_t i = 0; i < parentNode.childNodes.size(); i++) {
+	if (parentNode.nodeID == id) {
 
-		BLUSHNode* nodeAux = GetChildNodeByID(parentNode.childNodes[i], id);
-		if (nodeAux != nullptr) { return nodeAux; }
+		nodeAndParent.first = &parentNode;
+		return nodeAndParent;
 
 	}
 
-	return nullptr;
+	for (size_t i = 0; i < parentNode.childNodes.size(); i++) {
+
+		nodeAndParent = GetChildNodeAndParentByID(parentNode.childNodes[i], id);
+
+		if (nodeAndParent.first != nullptr) {
+
+			if (nodeAndParent.second == nullptr) { nodeAndParent.second = &parentNode; }
+			return nodeAndParent;
+
+		}
+
+	}
+
+	return nodeAndParent;
 
 }
 
@@ -120,19 +135,19 @@ void BLUSH::DeleteNodeByID(int id, bool deleteChilds) {
 	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
 
 		int toDelete = DeleteChildNodeByID(trees[currentTreeIndex].rootNodes[i], id, deleteChilds);
-		
+
 		if (toDelete == 1) {
-			
+
 			if (!deleteChilds) {
 
 				std::vector<BLUSHNode>::iterator nodeIt = trees[currentTreeIndex].rootNodes.begin() + i; // Can't use this for erase because iterator will be broken due to vector repositioning its memory
 				trees[currentTreeIndex].rootNodes.insert(trees[currentTreeIndex].rootNodes.end(), nodeIt->childNodes.begin(), nodeIt->childNodes.end());
-			
+
 			}
 
 			trees[currentTreeIndex].rootNodes.erase(trees[currentTreeIndex].rootNodes.begin() + i);
 			return;
-		
+
 		}
 
 	}
@@ -150,7 +165,7 @@ int BLUSH::DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds)
 		if (toDelete > 0) {
 
 			if (toDelete == 1) {
-				
+
 				if (!deleteChilds) {
 
 					std::vector<BLUSHNode>::iterator nodeIt = parentNode.childNodes.begin() + i; // Can't use this for erase because iterator will be broken due to vector repositioning its memory
@@ -160,7 +175,7 @@ int BLUSH::DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds)
 
 				parentNode.childNodes.erase(parentNode.childNodes.begin() + i);
 				toDelete = 2;
-			
+
 			}
 
 			return toDelete;
@@ -268,7 +283,7 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 void BLUSH::HandlePendingAction() {
 
 	BLUSHTree* treeRef = nullptr;
-	BLUSHNode* nodeRef = nullptr;
+	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef(nullptr, nullptr);
 	bool reset = false;
 
 	if (selectedNode != -1) {
@@ -277,12 +292,12 @@ void BLUSH::HandlePendingAction() {
 
 		case PENDING_ACTION::CREATE:
 
-			nodeRef = GetNodeByID(selectedNode);
+			nodeAndParentRef = GetNodeAndParentByID(selectedNode);
 
-			if (nodeRef != nullptr) {
-				
-				nodeRef->childNodes.push_back(BLUSHNode());
-				selectedNode = nodeRef->childNodes[nodeRef->childNodes.size() - 1].nodeID;
+			if (nodeAndParentRef.first != nullptr) {
+
+				nodeAndParentRef.first->childNodes.push_back(BLUSHNode());
+				selectedNode = nodeAndParentRef.first->childNodes[nodeAndParentRef.first->childNodes.size() - 1].nodeID;
 
 			}
 
@@ -293,22 +308,22 @@ void BLUSH::HandlePendingAction() {
 		case PENDING_ACTION::DELETE: DeleteNodeByID(selectedNode, includeChildNodes); reset = true; break;
 		case PENDING_ACTION::MOVE_TO_ROOT:
 
-			nodeRef = GetNodeByID(selectedNode);
+			nodeAndParentRef = GetNodeAndParentByID(selectedNode);
 			treeRef = GetTree(currentTreeIndex);
 
-			if (nodeRef != nullptr && treeRef != nullptr) {
+			if (nodeAndParentRef.first != nullptr && treeRef != nullptr) {
 
 				std::vector<BLUSHNode> childNodesRef;
 
 				if (!includeChildNodes) {
 
-					childNodesRef = nodeRef->childNodes;
-					nodeRef->childNodes.clear();
+					childNodesRef = nodeAndParentRef.first->childNodes;
+					nodeAndParentRef.first->childNodes.clear();
 
 				}
 
-				BLUSHNode nodecopy = *nodeRef;
-				DeleteNodeByID(nodeRef->nodeID, true);
+				BLUSHNode nodecopy = *nodeAndParentRef.first;
+				DeleteNodeByID(nodeAndParentRef.first->nodeID, true);
 				treeRef->rootNodes.push_back(nodecopy);
 
 			}
@@ -321,23 +336,48 @@ void BLUSH::HandlePendingAction() {
 
 			if (selectedNodeAux != -1) {
 
-				nodeRef = GetNodeByID(selectedNode);
-				BLUSHNode* newParentRef = GetNodeByID(selectedNodeAux);
+				nodeAndParentRef = GetNodeAndParentByID(selectedNode);
+				std::pair<BLUSHNode*, BLUSHNode*> newParentRef = GetNodeAndParentByID(selectedNodeAux);
+				int originalParentRefId = -1;
 
-				if (nodeRef != nullptr && newParentRef != nullptr) {
+				if (nodeAndParentRef.second != nullptr) { originalParentRefId = nodeAndParentRef.second->nodeID; }
+
+				if (nodeAndParentRef.first != nullptr && newParentRef.first != nullptr) {
 
 					std::vector<BLUSHNode> childNodesRef;
 
-					if (includeChildNodes) {
+					if (!includeChildNodes) {
 
-						childNodesRef = nodeRef->childNodes;
-						nodeRef->childNodes.clear();
+						childNodesRef = nodeAndParentRef.first->childNodes;
+						nodeAndParentRef.first->childNodes.clear();
 
 					}
 
-					BLUSHNode nodecopy = *nodeRef;
-					DeleteNodeByID(nodeRef->nodeID, true);
-					newParentRef->childNodes.push_back(nodecopy);
+					BLUSHNode nodecopy = *nodeAndParentRef.first;
+					DeleteNodeByID(nodeAndParentRef.first->nodeID, true);
+					newParentRef.first->childNodes.push_back(nodecopy);
+
+					if (!includeChildNodes) {
+
+						if (originalParentRefId != -1) {
+
+							std::pair<BLUSHNode*, BLUSHNode*> originalParentRef = GetNodeAndParentByID(originalParentRefId); // We get it after vector relocated memory
+							if (originalParentRef.first != nullptr) {
+
+								originalParentRef.first->childNodes.insert(originalParentRef.first->childNodes.end(), childNodesRef.begin(), childNodesRef.end());
+
+							}
+
+						}
+
+						else {
+
+							treeRef = GetTree(currentTreeIndex);
+							if (treeRef != nullptr) { treeRef->rootNodes.insert(treeRef->rootNodes.end(), childNodesRef.begin(), childNodesRef.end()); }
+
+						}
+
+					}
 
 				}
 

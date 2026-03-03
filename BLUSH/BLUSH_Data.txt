@@ -10,7 +10,9 @@
 		<Node0 nodeValue="" />
 		<Node0 nodeValue="Really" />
 		<Node0 nodeValue="" />
-		<Node0 nodeValue="NewNode" />
+		<Node0 nodeValue="NewNode">
+			<Node1 nodeValue="Aaa" />
+		</Node0>
 		<Node0 nodeValue="Na" />
 		<Node0 nodeValue="Movable">
 			<Node1 nodeValue="NewNode" />
@@ -18,12 +20,13 @@
 			<Node1 nodeValue="NewNode" />
 			<Node1 nodeValue="NewNode" />
 			<Node1 nodeValue="NewNode" />
+			<Node1 nodeValue="Wut" />
 		</Node0>
-		<Node0 nodeValue="Gio" />
-		<Node0 nodeValue="Wut">
-			<Node1 nodeValue="Stupid" />
+		<Node0 nodeValue="Gio">
+			<Node1 nodeValue="Hamilton">
+				<Node2 nodeValue="My shot" />
+			</Node1>
 		</Node0>
-		<Node0 nodeValue="Aaa" />
 	</Tree0>
 	<Tree1 name="NewTree" />
 	<Tree2 name="NewTree" />
