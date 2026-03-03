@@ -133,8 +133,8 @@ bool BLUSH::ContainsNode(int id) {
 	if (id == -1) { return false; }
 
 	for (size_t i = 0; i < trees[currentTreeIndex].rootNodes.size(); i++) {
-		
-		bool contains = ContainsNewNodeChild(trees[currentTreeIndex].rootNodes[i], id); 
+
+		bool contains = ContainsNewNodeChild(trees[currentTreeIndex].rootNodes[i], id);
 		if (contains) { return true; }
 
 	}
@@ -246,7 +246,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
 	bool wasClicked = false;
 	std::string nameBuffer = ImGuiBase::MakeImGuiName(node.nodeName, node.nodeID);
-	ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+	ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen;
 
 	if (pendingAction > PENDING_ACTION::NONE) {
 
@@ -256,9 +256,10 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 	}
 
 	if (nodeToggle == NODE_TOGGLE::SET_OPEN) { ImGui::SetNextItemOpen(true); }
-	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { ImGui::SetNextItemOpen(false); }
+	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { ImGui::SetNextItemOpen(false); } // This ain't going to close ALL nodes, only root, but ImGui can't close a node without drawing it, which instantly opens the parent
 	if (newNodeIndex != -1 && ContainsNode(newNodeIndex)) { ImGui::SetNextItemOpen(true); }
 
+	if (node.childNodes.size() == 0) { nodeFlags |= ImGuiTreeNodeFlags_Leaf; }
 	bool open = ImGui::TreeNodeEx(nameBuffer.c_str(), nodeFlags);
 
 	if (ImGui::IsItemClicked()) { selectedNode = node.nodeID; wasClicked = true; }
@@ -288,6 +289,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
 void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& rootNodes, int sizeX) {
 
+	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef(nullptr, nullptr);
 	static ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
 
 	ImGui::SetNextWindowPos(ImVec2(sizeX, screenHeight * 0.015f));
@@ -309,7 +311,20 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 
 	ImGui::SameLine();
 
-	if (ImGui::Button("New Child Node") && selectedNode != -1) { pendingAction = PENDING_ACTION::CREATE; } ImGui::Separator();
+	if (ImGui::Button("New Child Node") && selectedNode != -1) {
+
+		nodeAndParentRef = GetNodeAndParentByID(selectedNode);
+
+		if (nodeAndParentRef.first != nullptr) {
+
+			BLUSHNode newNode;
+			selectedNode = newNode.nodeID;
+			newNodeIndex = selectedNode;
+			nodeAndParentRef.first->childNodes.push_back(newNode);
+
+		}
+
+	} ImGui::Separator();
 
 	if (ImGui::Button(nodeToggle == NODE_TOGGLE::OPEN ? "Open All Nodes" : "Close All Nodes")) {
 
@@ -318,9 +333,23 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 	} ImGui::SameLine();
 
 	ImGui::Checkbox("Include Child Nodes", &includeChildNodes); ImGui::SameLine();
-	if (ImGui::Button("Delete Node")) { pendingAction = PENDING_ACTION::DELETE; } ImGui::SameLine();
-	if (ImGui::Button("Move Node to Root")) { pendingAction = PENDING_ACTION::MOVE_TO_ROOT; } ImGui::SameLine();
+
+	if (ImGui::Button("Delete Node") && selectedNode != -1) {
+
+		DeleteNodeByID(selectedNode, includeChildNodes);
+		selectedNode = -1;
+
+	} ImGui::SameLine();
+
+	if (ImGui::Button("Move Node to Root") && selectedNode != -1) {
+
+		MoveNode(-1);
+		selectedNode = -1;
+
+	} ImGui::SameLine();
+
 	if (ImGui::Button("Move Node")) { pendingAction = PENDING_ACTION::MOVE; }
+
 	ImGui::End();
 
 }
@@ -328,51 +357,20 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 
 void BLUSH::HandlePendingAction() {
 
-	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef(nullptr, nullptr);
 	bool reset = false;
 
-	if (selectedNode != -1) {
+	switch (pendingAction) {
 
-		switch (pendingAction) {
+	case PENDING_ACTION::MOVE:
 
-		case PENDING_ACTION::CREATE:
+		if (selectedNode != -1 && selectedNodeAux != -1) {
 
-			nodeAndParentRef = GetNodeAndParentByID(selectedNode);
-
-			if (nodeAndParentRef.first != nullptr) {
-
-				BLUSHNode newNode;
-				selectedNode = newNode.nodeID;
-				newNodeIndex = selectedNode;
-				nodeAndParentRef.first->childNodes.push_back(newNode);
-
-			}
-
-			pendingAction = PENDING_ACTION::NONE;
-
-			break;
-
-		case PENDING_ACTION::DELETE: DeleteNodeByID(selectedNode, includeChildNodes); reset = true; break;
-
-		case PENDING_ACTION::MOVE_TO_ROOT:
-
-			MoveNode(-1);
-			reset = true; break;
-
-		case PENDING_ACTION::MOVE:
-
-			if (selectedNodeAux != -1) { MoveNode(selectedNodeAux); reset = true; }
-			break;
-
-		}
-
-		if (reset) {
-
-			pendingAction = PENDING_ACTION::NONE;
+			MoveNode(selectedNodeAux);
 			selectedNode = -1;
 			selectedNodeAux = -1;
+			pendingAction = PENDING_ACTION::NONE;
 
-		}
+		}	break;
 
 	}
 

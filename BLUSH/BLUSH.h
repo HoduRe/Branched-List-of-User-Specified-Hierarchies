@@ -7,9 +7,6 @@
 enum class PENDING_ACTION {
 
 	NONE,
-	CREATE,
-	DELETE,
-	MOVE_TO_ROOT,
 	MOVE
 
 };
