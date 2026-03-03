@@ -95,7 +95,7 @@ private:
 	SDL_Window* windowRef;
 	int screenWidth, screenHeight;
 	std::vector<BLUSHTree> trees;
-	int currentTreeIndex, currentNodeIndex, selectedNode, selectedNodeAux;
+	int currentTreeIndex, currentNodeIndex, selectedNode, selectedNodeAux, newNodeIndex;
 	PENDING_ACTION pendingAction;
 	NODE_TOGGLE nodeToggle;
 	bool includeChildNodes;

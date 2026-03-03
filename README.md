@@ -10,6 +10,4 @@ When an action has been taken, and select is enabled, hide all other buttons, an
 Can we make tree nodes that are empty be text instead of a tree node, or something?
 Memory leaks?
 
-// Can't we just have a buffer name and not a name at all?
-
 Add Rahab animation (Rahab card)

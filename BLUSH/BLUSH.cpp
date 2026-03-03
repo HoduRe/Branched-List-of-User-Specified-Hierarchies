@@ -14,7 +14,7 @@ BLUSHTree::~BLUSHTree() {}
 
 BLUSH::BLUSH(SDL_Window* _window, int _screenWidth, int _screenHeight) : windowRef(_window), screenWidth(_screenWidth), screenHeight(_screenHeight),
 currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer(""), pendingAction(PENDING_ACTION::NONE), includeChildNodes(true), selectedNode(-1),
-selectedNodeAux(-1), nodeToggle(NODE_TOGGLE::SET_OPEN) {
+selectedNodeAux(-1), nodeToggle(NODE_TOGGLE::SET_OPEN), newNodeIndex(-1) {
 
 	LoadDataTrees();
 
@@ -236,6 +236,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 		ImGuiInputTextFlags textFlags = ImGuiInputTextFlags_AutoSelectAll;
 		ImGui::SetNextItemWidth(screenWidth * DATA_MENU_MULTIPLIER * 0.5f);
 		ImGui::InputText(ImGuiBase::MakeImGuiName("##nodeNameEdit", node.nodeID).c_str(), node.nameBuffer, sizeof(node.nameBuffer), textFlags);
+		if (newNodeIndex == node.nodeID) { ImGui::SetKeyboardFocusHere(); newNodeIndex = -1; }
 		if (wasClicked) { ImGui::SetKeyboardFocusHere(); }
 
 	}
@@ -264,8 +265,18 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 	ImGui::InputText("##treeNameEditor", treeNameBuffer, sizeof(treeNameBuffer));
 	name = treeNameBuffer; ImGui::SameLine();
 
-	if (ImGui::Button("New Root Node")) { rootNodes.push_back(BLUSHNode()); } ImGui::SameLine();
-	if (ImGui::Button("New Child Node")) { pendingAction = PENDING_ACTION::CREATE; } ImGui::Separator();
+	if (ImGui::Button("New Root Node")) {
+		
+		BLUSHNode newNode;
+		selectedNode = newNode.nodeID;
+		newNodeIndex = selectedNode;
+		rootNodes.push_back(newNode);
+
+	}
+	
+	ImGui::SameLine();
+
+		if (ImGui::Button("New Child Node") && selectedNode != -1) { pendingAction = PENDING_ACTION::CREATE; } ImGui::Separator();
 
 	if (ImGui::Button(nodeToggle == NODE_TOGGLE::OPEN ? "Open All Nodes" : "Close All Nodes")) {
 
@@ -299,6 +310,7 @@ void BLUSH::HandlePendingAction() {
 
 				BLUSHNode newNode;
 				selectedNode = newNode.nodeID;
+				newNodeIndex = selectedNode;
 				nodeAndParentRef.first->childNodes.push_back(newNode);
 
 			}
