@@ -327,7 +327,7 @@ void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int in
 void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
 	bool wasClicked = false;
-	std::string nameBuffer = ImGuiBase::MakeImGuiName(node.nodeName, node.nodeID);
+	std::string nameBuffer = ImGuiBase::MakeImGuiName("", node.nodeID);
 	ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen;
 
 	if (ImGui::Button(ImGuiBase::MakeImGuiName("^", node.nodeID).c_str())) { moveNodeIndex = node.nodeID; pendingAction = PENDING_ACTION::MOVE_UP; } ImGui::SameLine();
@@ -344,7 +344,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 	if (nodeToggle == NODE_TOGGLE::SET_CLOSE) { ImGui::SetNextItemOpen(false); } // This ain't going to close ALL nodes, only root, but ImGui can't close a node without drawing it, which instantly opens the parent
 	if (newNodeIndex != -1 && ContainsNode(newNodeIndex)) { ImGui::SetNextItemOpen(true); }
 
-	if (node.childNodes.size() == 0) { nodeFlags |= ImGuiTreeNodeFlags_Leaf; }
+	if (node.childNodes.size() == 0) { nodeFlags |= ImGuiTreeNodeFlags_Bullet; }
 	bool open = ImGui::TreeNodeEx(nameBuffer.c_str(), nodeFlags);
 
 	if (ImGui::IsItemClicked()) { selectedNode = node.nodeID; wasClicked = true; }
@@ -359,6 +359,8 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 		if (wasClicked) { ImGui::SetKeyboardFocusHere(); }
 
 	}
+
+	else { ImGui::SameLine(); ImGui::Text(node.nodeName.c_str()); } // We do it like this because focus changes with the treeNode's name
 
 	if (open) {
 
