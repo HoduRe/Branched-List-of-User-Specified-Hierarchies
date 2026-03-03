@@ -36,7 +36,7 @@ public:
 	int nodeID;
 	std::string nodeName;
 	char nameBuffer[NODE_NAME_BUFFER_SIZE];
-	std::vector<BLUSHNode> childNodes;
+	std::vector<BLUSHNode> childNodes; // In this particular day, I refuse to work with lists, even if it's the right decision :3
 
 private:
 

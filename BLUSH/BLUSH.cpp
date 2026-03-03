@@ -295,8 +295,9 @@ void BLUSH::HandlePendingAction() {
 
 			if (nodeAndParentRef.first != nullptr) {
 
-				nodeAndParentRef.first->childNodes.push_back(BLUSHNode());
-				selectedNode = nodeAndParentRef.first->childNodes[nodeAndParentRef.first->childNodes.size() - 1].nodeID;
+				BLUSHNode newNode;
+				selectedNode = newNode.nodeID;
+				nodeAndParentRef.first->childNodes.push_back(newNode);
 
 			}
 
@@ -332,6 +333,8 @@ void BLUSH::HandlePendingAction() {
 
 
 void BLUSH::MoveNode(int newParentId) {
+
+	if (newParentId == selectedNode) { return; }
 
 	BLUSHTree* treeRef = nullptr;
 	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef = GetNodeAndParentByID(selectedNode);

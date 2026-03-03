@@ -2,9 +2,7 @@
 
 TASK LIST:
 
-// Creating nodes under a created node doesn't show them, but they are there
-// Move node to itself
-// Move root node to the root
+// Why when I create a node inside a created node, the parent closes its leaf
 
 - Do upTree downTree
 
@@ -13,8 +11,5 @@ Can we make tree nodes that are empty be text instead of a tree node, or somethi
 Memory leaks?
 
 // Can't we just have a buffer name and not a name at all?
-// Clean code, because now we can't do things in one click
-	Only once we have Move To Node!
-
 
 Add Rahab animation (Rahab card)
