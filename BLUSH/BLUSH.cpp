@@ -212,10 +212,9 @@ void BLUSH::DrawTreeData(std::vector<BLUSHNode>& rootNodes, int initialX, int in
 
 void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
+	bool wasClicked = false;
 	std::string nameBuffer = ImGuiBase::MakeImGuiName(node.nodeName, node.nodeID);
-	ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-
-	if (selectedNode == node.nodeID) { nodeFlags |= ImGuiTreeNodeFlags_Selected; }
+	ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 
 	if (pendingAction > PENDING_ACTION::NONE) {
 
@@ -229,12 +228,15 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
 	bool open = ImGui::TreeNodeEx(nameBuffer.c_str(), nodeFlags);
 
-	if (ImGui::IsItemClicked()) { selectedNode = node.nodeID; }
+	if (ImGui::IsItemClicked()) { selectedNode = node.nodeID; wasClicked = true; }
 
 	if (selectedNode == node.nodeID) {
 
+		ImGui::SameLine();
+		ImGuiInputTextFlags textFlags = ImGuiInputTextFlags_AutoSelectAll;
 		ImGui::SetNextItemWidth(screenWidth * DATA_MENU_MULTIPLIER * 0.5f);
-		ImGui::InputText(ImGuiBase::MakeImGuiName("##nodeNameEdit", node.nodeID).c_str(), node.nameBuffer, sizeof(node.nameBuffer));
+		ImGui::InputText(ImGuiBase::MakeImGuiName("##nodeNameEdit", node.nodeID).c_str(), node.nameBuffer, sizeof(node.nameBuffer), textFlags);
+		if (wasClicked) { ImGui::SetKeyboardFocusHere(); }
 
 	}
 
