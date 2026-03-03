@@ -7,7 +7,9 @@
 enum class PENDING_ACTION {
 
 	NONE,
-	MOVE
+	MOVE,
+	MOVE_UP,
+	MOVE_DOWN
 
 };
 
@@ -73,6 +75,8 @@ private:
 	std::pair<BLUSHNode*, BLUSHNode*> GetChildNodeAndParentByID(BLUSHNode& parentNode, int id);
 	bool ContainsNode(int id);
 	bool ContainsNewNodeChild(BLUSHNode& parentNode, int id);
+	void ReorderNode(int id);
+	void ReorderChildNode(std::vector<BLUSHNode>& parentNode, int id);
 	void DeleteNodeByID(int id, bool deleteChilds);
 	int DeleteChildNodeByID(BLUSHNode& parentNode, int id, bool deleteChilds);
 
@@ -80,7 +84,7 @@ private:
 	void DrawTreeChildData(BLUSHNode& node);
 	void DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& rootNodes, int sizeX);
 	void HandlePendingAction();
-	void MoveNode(int newParentId);
+	void MoveNode(int movedId, int newParentId);
 	void LoadDataTrees();
 	void SaveDataTreeChildNodes(const BLUSHNode& node, pugi::xml_node& xmlNode, int index);
 	BLUSHNode LoadDataTreeChildNodes(pugi::xml_node& treeNode);
@@ -94,7 +98,7 @@ private:
 	SDL_Window* windowRef;
 	int screenWidth, screenHeight;
 	std::vector<BLUSHTree> trees;
-	int currentTreeIndex, currentNodeIndex, selectedNode, selectedNodeAux, newNodeIndex;
+	int currentTreeIndex, selectedNode, selectedNodeAux, newNodeIndex, moveNodeIndex;
 	PENDING_ACTION pendingAction;
 	NODE_TOGGLE nodeToggle;
 	bool includeChildNodes;

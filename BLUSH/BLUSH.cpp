@@ -14,7 +14,7 @@ BLUSHTree::~BLUSHTree() {}
 
 BLUSH::BLUSH(SDL_Window* _window, int _screenWidth, int _screenHeight) : windowRef(_window), screenWidth(_screenWidth), screenHeight(_screenHeight),
 currentTreeIndex(0), trees(), fileHandle(), treeNameBuffer(""), pendingAction(PENDING_ACTION::NONE), includeChildNodes(true), selectedNode(-1),
-selectedNodeAux(-1), nodeToggle(NODE_TOGGLE::SET_OPEN), newNodeIndex(-1) {
+selectedNodeAux(-1), nodeToggle(NODE_TOGGLE::SET_OPEN), newNodeIndex(-1), moveNodeIndex(-1) {
 
 	LoadDataTrees();
 
@@ -160,6 +160,59 @@ bool BLUSH::ContainsNewNodeChild(BLUSHNode& parentNode, int id) {
 }
 
 
+void BLUSH::ReorderNode(int id) {
+
+	if (id == -1) { return; }
+	ReorderChildNode(trees[currentTreeIndex].rootNodes, id);
+
+}
+
+
+void BLUSH::ReorderChildNode(std::vector<BLUSHNode>& parentNode, int id) {
+
+	for (size_t i = 0; i < parentNode.size(); i++) {
+
+		BLUSHNode& node = parentNode[i];
+
+		if (node.nodeID == id) {
+
+			if (pendingAction == PENDING_ACTION::MOVE_UP) {
+
+				if (i != 0) {
+
+					parentNode.emplace(parentNode.begin() + i - 1, node);
+					parentNode.erase(parentNode.begin() + i + 1);
+
+				}
+
+				pendingAction = PENDING_ACTION::NONE;
+
+			}
+
+			if (pendingAction == PENDING_ACTION::MOVE_DOWN) {
+
+				if (i != parentNode.size() - 1) {
+
+					parentNode.emplace(parentNode.begin() + i, parentNode[i + 1]);
+					parentNode.erase(parentNode.begin() + i + 2);
+
+				}
+
+				pendingAction = PENDING_ACTION::NONE;
+
+			}
+
+			return;
+
+		}
+
+		else { ReorderChildNode(node.childNodes, id); }
+
+	}
+
+}
+
+
 void BLUSH::DeleteNodeByID(int id, bool deleteChilds) {
 
 	if (!(currentTreeIndex < trees.size())) { return; }
@@ -248,7 +301,10 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 	std::string nameBuffer = ImGuiBase::MakeImGuiName(node.nodeName, node.nodeID);
 	ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_DefaultOpen;
 
-	if (pendingAction > PENDING_ACTION::NONE) {
+	if (ImGui::Button(ImGuiBase::MakeImGuiName("^", node.nodeID).c_str())) { moveNodeIndex = node.nodeID; pendingAction = PENDING_ACTION::MOVE_UP; } ImGui::SameLine();
+	if (ImGui::Button(ImGuiBase::MakeImGuiName("v", node.nodeID).c_str())) { moveNodeIndex = node.nodeID; pendingAction = PENDING_ACTION::MOVE_DOWN; }ImGui::SameLine();
+
+	if (pendingAction == PENDING_ACTION::MOVE) {
 
 		if (ImGui::Button(ImGuiBase::MakeImGuiName("Select", node.nodeID).c_str())) { selectedNodeAux = node.nodeID; }
 		ImGui::SameLine();
@@ -343,7 +399,7 @@ void BLUSH::DrawTreeDataEditingMenu(std::string& name, std::vector<BLUSHNode>& r
 
 	if (ImGui::Button("Move Node to Root") && selectedNode != -1) {
 
-		MoveNode(-1);
+		MoveNode(selectedNode, -1);
 		selectedNode = -1;
 
 	} ImGui::SameLine();
@@ -365,28 +421,48 @@ void BLUSH::HandlePendingAction() {
 
 		if (selectedNode != -1 && selectedNodeAux != -1) {
 
-			MoveNode(selectedNodeAux);
+			MoveNode(selectedNode, selectedNodeAux);
 			selectedNode = -1;
 			selectedNodeAux = -1;
 			pendingAction = PENDING_ACTION::NONE;
 
-		}	break;
+		} break;
+
+	case PENDING_ACTION::MOVE_UP:
+
+		if (moveNodeIndex != -1) {
+
+			ReorderNode(moveNodeIndex);
+			moveNodeIndex = -1;
+			pendingAction = PENDING_ACTION::NONE;
+
+		} break;
+
+	case PENDING_ACTION::MOVE_DOWN:
+
+		if (moveNodeIndex != -1) {
+
+			ReorderNode(moveNodeIndex);
+			moveNodeIndex = -1;
+			pendingAction = PENDING_ACTION::NONE;
+
+		} break;
 
 	}
 
 }
 
 
-void BLUSH::MoveNode(int newParentId) {
+void BLUSH::MoveNode(int movedId, int newParentId) {
 
-	if (newParentId == selectedNode) { return; }
+	if (newParentId == movedId) { return; }
 
 	BLUSHTree* treeRef = nullptr;
-	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef = GetNodeAndParentByID(selectedNode);
+	std::pair<BLUSHNode*, BLUSHNode*> nodeAndParentRef = GetNodeAndParentByID(movedId);
 	std::pair<BLUSHNode*, BLUSHNode*> newParentRef(nullptr, nullptr);
 	int originalParentRefId = -1;
 
-	if (newParentId != -1) { newParentRef = GetNodeAndParentByID(selectedNodeAux); }
+	if (newParentId != -1) { newParentRef = GetNodeAndParentByID(newParentId); }
 	if (nodeAndParentRef.second != nullptr) { originalParentRefId = nodeAndParentRef.second->nodeID; }
 
 	if (nodeAndParentRef.first != nullptr) {
