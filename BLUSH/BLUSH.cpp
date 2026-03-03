@@ -45,6 +45,14 @@ bool BLUSH::Update() {
 		currentTreeIndex = newIndex;
 		strcpy_s(treeNameBuffer, sizeof(treeNameBuffer), trees[newIndex].treeName.c_str());
 
+	} ImGui::SameLine();
+
+	if (ImGui::Button("Delete Selected Tree") && currentTreeIndex != -1) {
+		
+		trees.erase(trees.begin() + currentTreeIndex);
+		currentTreeIndex = trees.size() == 0 ? -1 : 0;
+		if (currentTreeIndex != -1) { strcpy_s(treeNameBuffer, sizeof(treeNameBuffer), trees[currentTreeIndex].treeName.c_str()); }
+
 	}
 
 	int upTree = -1, downTree = -1;
