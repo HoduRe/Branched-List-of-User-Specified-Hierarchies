@@ -353,7 +353,7 @@ void BLUSH::DrawTreeChildData(BLUSHNode& node) {
 
 		ImGui::SameLine();
 		ImGuiInputTextFlags textFlags = ImGuiInputTextFlags_AutoSelectAll;
-		ImGui::SetNextItemWidth(screenWidth * DATA_MENU_MULTIPLIER * 0.5f);
+		ImGui::SetNextItemWidth(screenWidth * DATA_MENU_MULTIPLIER * 0.75f);
 		ImGui::InputText(ImGuiBase::MakeImGuiName("##nodeNameEdit", node.nodeID).c_str(), node.nameBuffer, sizeof(node.nameBuffer), textFlags);
 		if (newNodeIndex == node.nodeID) { ImGui::SetKeyboardFocusHere(); newNodeIndex = -1; }
 		if (wasClicked) { ImGui::SetKeyboardFocusHere(); }

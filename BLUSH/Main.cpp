@@ -38,7 +38,7 @@ bool InitScreen() {
 		if (WIN_BORDERLESS == true) { flags |= SDL_WINDOW_BORDERLESS; }
 		if (WIN_FULLSCREEN_DESKTOP == true) { flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; }
 
-		window = SDL_CreateWindow("Circular Motion", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
+		window = SDL_CreateWindow("BLUSH", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
 
 		if (window == NULL) { ret = false; }
 		else { screenSurface = SDL_GetWindowSurface(window); }
