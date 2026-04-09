@@ -95,6 +95,7 @@
     <ClInclude Include="BLUSH.h">
       <Filter>BLUSH</Filter>
     </ClInclude>
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CircularMotion">
@@ -109,5 +110,11 @@
     <Filter Include="PugiXML">
       <UniqueIdentifier>{6a91633d-3ca2-41ba-b50c-19046225fcd0}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="BLUSH.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="BLUSH.ico" />
   </ItemGroup>
 </Project>
